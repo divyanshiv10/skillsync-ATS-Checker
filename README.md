@@ -1,1 +1,3 @@
 # skillsync-ATS-Checker
+SkillSync is a high-performance, full-stack ATS (Applicant Tracking System) optimizer designed to bridge the gap between job seekers and recruitment algorithms. Built with a React frontend and Node.js backend, it features a cinematic 3D UI and a contextual Gemini 2.5 Flash-Lite AI assistant.
+The platform performs instant text extraction from PDF resumes, cross-references them against job descriptions via a custom keyword-matching engine, and provides a real-time "Sync Score." Beyond raw data, SkillSync integrates a context-aware chatbot that acts as a career coach, offering tailored advice on how to bridge skill gaps and optimize resumes for modern hiring standards.
