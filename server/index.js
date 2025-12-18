@@ -10,9 +10,11 @@ app.use(cors());
 app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() }); 
 
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-2.0-flash-lite", 
+    model: "gemini-2.5-flash-lite", 
     generationConfig: {
         maxOutputTokens: 250,
         temperature: 0.7,
@@ -21,12 +23,10 @@ const model = genAI.getGenerativeModel({
 
 app.post('/api/chat', async (req, res) => {
     const { prompt } = req.body;
-
     try {
         const chatPrompt = `You are the SkillSync AI Assistant. 
         Format your answer using the following rules:
         - Use "•" for every single point.
-        - DO NOT use bold stars (**) or headers (###).
         - Provide exactly 3-4 professional points.
         - Keep language concise and career-focused.
 
@@ -34,27 +34,25 @@ app.post('/api/chat', async (req, res) => {
 
         const result = await model.generateContent(chatPrompt);
         const response = await result.response;
-        const text = response.text();
-        
-        res.json({ text: text.trim() });
-
+        res.json({ text: response.text().trim() });
     } catch (error) {
         console.error("Gemini Error:", error);
-        res.status(500).json({ text: "• AI is busy right now.\n• Please try again in 10 seconds.\n• Check your daily sync quota." });
+        if (error.status === 429) {
+            res.status(429).json({ text: "• Daily limit reached (Dec 2025 update).\n• Free tier allows ~20 requests daily.\n• Quota resets at midnight PT." });
+        } else {
+            res.status(500).json({ text: "• AI service is temporarily unavailable.\n• Please try again in 30 seconds." });
+        }
     }
 });
 
 app.post('/analyze', upload.single('resume'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-        
         const pdfData = await pdfParse(req.file.buffer);
         const resumeText = pdfData.text.toLowerCase();
         const jdText = req.body.jdText ? req.body.jdText.toLowerCase() : "";
-
         const filler = new Set(['the', 'and', 'with', 'from', 'this', 'that']);
         const jdKeywords = jdText.split(/\W+/).filter(word => word.length > 3 && !filler.has(word));
-        
         const matched = jdKeywords.filter(word => resumeText.includes(word));
         const missing = jdKeywords.filter(word => !resumeText.includes(word));
         const score = jdKeywords.length > 0 ? Math.round((matched.length / jdKeywords.length) * 100) : 0;
@@ -73,4 +71,4 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
     }
 });
 
-app.listen(5000, () => console.log(` SkillSync Live on Gemini 2.5 Flash`));
+app.listen(5000, () => console.log(`🚀 SkillSync Backend Live | Dec 2025 Stable`));
